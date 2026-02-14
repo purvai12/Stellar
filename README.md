@@ -54,22 +54,22 @@ A modern, mobile-responsive web application for tracking savings and managing tr
 ### 1. Wallet Connected & Balance
 *The main dashboard showing your XLM balance and savings progress.*
 
-![Wallet Page](./screenshots/wallet_page.png)
+![Wallet Page](./Screenshots/wallet_page.png)
 
 ### 2. Transaction History
 *A list of your recent sent and received transactions.*
 
-![History Page](./screenshots/history_page.png)
+![History Page](./Screenshots/history_page.png)
 
 ### 3. Sending a Transaction
 *Sending XLM with the option to save the address to your address book.*
 
-![Send Page](./screenshots/send_page.png)
+![Send Page](./Screenshots/send_page.png)
 
 ### 4. Successful Transaction
 *Confirmation and transaction hash link.*
 
-![Transaction Success](./screenshots/tx_success.png)
+![Transaction Success](./Screenshots/tx_success.png)
 
 ## 🤝 Contributing
 

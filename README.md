@@ -1,9 +1,9 @@
-# StellaSmart Saver 🚀
+# StellaSmart Saver 
 
 A modern, multi-page Web3 savings tracker built on **Stellar Testnet** with **Soroban smart contract** integration. Connect your favorite wallet, set goals, maintain daily savings streaks, earn NFT-style badges, and interact with the broader savings community on-chain.
 
-### 🔗 Live Demo
-> [Live Demo on Vercel](https://69a058dc4bdc930e0aeee209--lucent-strudel-4b3f0b.netlify.app/)
+###  Live Demo
+> [Live Demo on Netlifyl](https://69a058dc4bdc930e0aeee209--lucent-strudel-4b3f0b.netlify.app/)
 
 
 ### Platform Features
@@ -16,7 +16,7 @@ A modern, multi-page Web3 savings tracker built on **Stellar Testnet** with **So
 
 ---
 
-## 📸 Screenshots
+##  Screenshots
 
 ### 1. Wallet Options Available (Multi-Wallet Connect)
 *Integrated with StellarWalletsKit offering Freighter, LOBSTR, xBull, and more.*
@@ -39,18 +39,18 @@ A modern, multi-page Web3 savings tracker built on **Stellar Testnet** with **So
 > **Contract Address (Testnet):**
 > ![Deployed_Contract](./screenshots/deployed_contract.jpg)
 > 
-> 🔗 [View Contract on Stellar Expert](https://stellar.expert/explorer/testnet/contract/CB2QEUXSE7JNVZQIFQLTWWMTNYZFMYBUEJTHBNPBJRYU2OGRCS66K65P)
+>  [View Contract on Stellar Expert](https://stellar.expert/explorer/testnet/contract/CB2QEUXSE7JNVZQIFQLTWWMTNYZFMYBUEJTHBNPBJRYU2OGRCS66K65P)
 
 ### Sample Contract Call Transaction
 
 A verifiable transaction hash from calling `add_savings` on the testnet:
 > ![Contract_Call](./screenshots/contract_call.jpg)
 >
-> 🔗 [Verify Transaction on Stellar Expert](https://stellar.expert/explorer/testnet/tx/21b5e5264b301cd23b1bfd83dedba7dbbebc49c6fcb99f2e3be75ab78bba33cc)
+>  [Verify Transaction on Stellar Expert](https://stellar.expert/explorer/testnet/tx/21b5e5264b301cd23b1bfd83dedba7dbbebc49c6fcb99f2e3be75ab78bba33cc)
 
 ---
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 | Layer | Technology |
 |---|---|
@@ -64,7 +64,7 @@ A verifiable transaction hash from calling `add_savings` on the testnet:
 
 ---
 
-## 🚀 Setup Instructions
+##  Setup Instructions
 
 ### Prerequisites
 
@@ -96,8 +96,8 @@ A verifiable transaction hash from calling `add_savings` on the testnet:
 
 ---
 
-## 🤝 Contributing
+##  Contributing
 Pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change.
 
-## 📄 License
+##  License
 MIT — Open source and free to use.

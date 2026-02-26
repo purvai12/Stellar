@@ -3,21 +3,8 @@
 A modern, multi-page Web3 savings tracker built on **Stellar Testnet** with **Soroban smart contract** integration. Connect your favorite wallet, set goals, maintain daily savings streaks, earn NFT-style badges, and interact with the broader savings community on-chain.
 
 ### 🔗 Live Demo
-> **[Live Demo on Vercel](#) (Insert your Vercel/Netlify link here)**
+> **[Live Demo on Vercel](#) **
 
----
-
-## ✨ Features & Requirements Met
-
-| Submission Requirement | Status | Details |
-|---|---|---|
-| **Public GitHub repository** | ✅ | This repository! |
-| **README with setup instructions** | ✅ | See [Setup Instructions](#-setup-instructions) below. |
-| **Minimum 2+ meaningful commits** | ✅ | Verified in commit history. |
-| **Live demo link** | ✅ | Linked at the top of this README. |
-| **Screenshot: wallet options available** | ✅ | StellarWalletsKit integration shown below. |
-| **Deployed contract address** | ✅ | `CB2QEUXSE7JNVZQIFQLTWWMTNYZFMYBUEJTHBNPBJRYU2OGRCS66K65P` |
-| **Transaction Hash of a contract call** | ✅ | `21b5e5264b301cd23b1bfd83dedba7dbbebc49c6fcb99f2e3be75ab78bba33cc` |
 
 ### Platform Features
 - **Multi-Wallet Support**: Integrated with `@creit-tech/stellar-wallets-kit` supporting Freighter, LOBSTR, xBull, Albedo, and more.
@@ -34,31 +21,30 @@ A modern, multi-page Web3 savings tracker built on **Stellar Testnet** with **So
 ### 1. Wallet Options Available (Multi-Wallet Connect)
 *Integrated with StellarWalletsKit offering Freighter, LOBSTR, xBull, and more.*
 
-![Wallet Options](./screenshots/wallet-options.jpg) *(Insert your screenshot here)*
+![Wallet Options](./screenshots/wallet-options.jpg)
 
 ### 2. On-Chain Savings Goals
 *Track your targeted savings. Every contribution is logged on the Soroban smart contract.*
 
-![Goals Page](./screenshots/goals-page.jpg) *(Insert your screenshot here)*
+![Goals Page](./screenshots/goals-page.jpg)
 
 ### 3. Community Leaderboard
 *Compare your on-chain savings with the rest of the network without needing a traditional backend.*
 
-![Community Page](./screenshots/community-page.jpg) *(Insert your screenshot here)*
+![Community Page](./screenshots/community-page.jpg)
 
----
 
-## 📄 Deployed Contract Details
+## 4. Deployed Contract Details
 
 > **Contract Address (Testnet):**
-> `CB2QEUXSE7JNVZQIFQLTWWMTNYZFMYBUEJTHBNPBJRYU2OGRCS66K65P`
+> ![Deployed_Contract](./screenshots/deployed_contract.jpg)
 > 
 > 🔗 [View Contract on Stellar Expert](https://stellar.expert/explorer/testnet/contract/CB2QEUXSE7JNVZQIFQLTWWMTNYZFMYBUEJTHBNPBJRYU2OGRCS66K65P)
 
 ### Sample Contract Call Transaction
 
 A verifiable transaction hash from calling `add_savings` on the testnet:
-> **Transaction Hash:** `21b5e5264b301cd23b1bfd83dedba7dbbebc49c6fcb99f2e3be75ab78bba33cc`
+> ![Contract_Call](./screenshots/contract_call.jpg)
 >
 > 🔗 [Verify Transaction on Stellar Expert](https://stellar.expert/explorer/testnet/tx/21b5e5264b301cd23b1bfd83dedba7dbbebc49c6fcb99f2e3be75ab78bba33cc)
 

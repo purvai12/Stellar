@@ -1,7 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import PageTransition from '../components/PageTransition';
 import * as StellarSdk from '@stellar/stellar-sdk';
+import { createClient } from '@supabase/supabase-js';
 import { awardBadge, hasBadge } from '../hooks/useBadges';
+
+const SUPABASE_URL = 'https://mhlpyaajdrvcaaqwpkwy.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_B26r8WIxEIKs1gh47AiyvA_Y8B6AuLQ';
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const RPC_URL = "https://soroban-testnet.stellar.org";
 const CONTRACT_ID = "CB2QEUXSE7JNVZQIFQLTWWMTNYZFMYBUEJTHBNPBJRYU2OGRCS66K65P";
@@ -19,24 +24,22 @@ export default function CommunityPage({ walletAddress, streakData, onBadgeAwarde
     const [hasJoined, setHasJoined] = useState(false);
     const [loading, setLoading] = useState(false);
 
-    const loadCommunityFromStorage = useCallback(() => {
-        try {
-            const raw = localStorage.getItem('savings_community');
-            if (raw) return JSON.parse(raw);
-            return [];
-        } catch { return []; }
-    }, []);
-
-    const saveCommunityToStorage = (list) => {
-        localStorage.setItem('savings_community', JSON.stringify(list));
-    };
-
     const fetchLeaderboard = useCallback(async () => {
         setLoading(true);
         try {
             const contract = new StellarSdk.Contract(CONTRACT_ID);
-            const communityList = loadCommunityFromStorage();
 
+            // 1. Fetch community member addresses from Supabase instead of local storage
+            const { data: memberData, error } = await supabase.from('community_members').select('wallet_address');
+            let communityList = [];
+            if (!error && memberData) {
+                communityList = memberData.map(row => row.wallet_address);
+            }
+            if (communityList.includes(walletAddress)) {
+                setHasJoined(true);
+            }
+
+            // 2. Fetch all of their Soroban on-chain savings balances
             const promises = communityList.map(async (address) => {
                 try {
                     const tx = new StellarSdk.TransactionBuilder(await sorobanServer.getAccount(address), { fee: "100", networkPassphrase: StellarSdk.Networks.TESTNET })
@@ -60,28 +63,27 @@ export default function CommunityPage({ walletAddress, streakData, onBadgeAwarde
         } finally {
             setLoading(false);
         }
-    }, [loadCommunityFromStorage]);
+    }, [walletAddress]);
 
     useEffect(() => {
-        const comm = loadCommunityFromStorage();
-        if (comm.includes(walletAddress)) setHasJoined(true);
         fetchLeaderboard();
         const int = setInterval(fetchLeaderboard, 10000); // 10s auto-refresh
         return () => clearInterval(int);
-    }, [walletAddress, fetchLeaderboard, loadCommunityFromStorage]);
+    }, [fetchLeaderboard]);
 
-    const handleJoin = () => {
-        const comm = loadCommunityFromStorage();
-        if (!comm.includes(walletAddress)) {
-            const updated = [...comm, walletAddress];
-            saveCommunityToStorage(updated);
-            setHasJoined(true);
-            if (!hasBadge(walletAddress, 'COMMUNITY_JOIN')) {
-                const badge = awardBadge(walletAddress, 'COMMUNITY_JOIN');
-                if (badge && onBadgeAwarded) onBadgeAwarded(badge);
-            }
-            fetchLeaderboard();
+    const handleJoin = async () => {
+        setHasJoined(true); // Optimistic UI update
+
+        // Award badge locally if they haven't merged it yet
+        if (!hasBadge(walletAddress, 'COMMUNITY_JOIN')) {
+            const badge = awardBadge(walletAddress, 'COMMUNITY_JOIN');
+            if (badge && onBadgeAwarded) onBadgeAwarded(badge);
         }
+
+        // Add them to the global Supabase database
+        await supabase.from('community_members').upsert({ wallet_address: walletAddress });
+
+        fetchLeaderboard();
     };
 
     return (

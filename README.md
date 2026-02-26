@@ -3,7 +3,7 @@
 A modern, multi-page Web3 savings tracker built on **Stellar Testnet** with **Soroban smart contract** integration. Connect your favorite wallet, set goals, maintain daily savings streaks, earn NFT-style badges, and interact with the broader savings community on-chain.
 
 ### 🔗 Live Demo
-> [Live Demo on Vercel](yellowbelt.vercel.app) 
+> [Live Demo on Vercel](https://yellowbelt.vercel.app/)
 
 
 ### Platform Features

@@ -1,167 +1,161 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import PageTransition from '../components/PageTransition';
-import { useLocation } from 'react-router-dom';
 
-// ─── Transaction Status Banner ──────────────────────────────────────────────
-const TxStatusBanner = ({ txStatus, txHash }) => {
-    if (!txStatus) return null;
-
-    const states = {
-        pending: { icon: "⏳", label: "Building transaction...", cls: "status-pending" },
-        signing: { icon: "✍️", label: "Waiting for Freighter signature...", cls: "status-pending" },
-        submitting: { icon: "📡", label: "Submitting to Stellar network...", cls: "status-pending" },
-        success: { icon: "✅", label: "Transaction Successful!", cls: "status-success" },
-        failed: { icon: "❌", label: "Transaction Failed", cls: "status-failed" },
-    };
-
-    const state = states[txStatus] || { icon: "ℹ️", label: txStatus, cls: "status-pending" };
-
-    return (
-        <div className={`txStatusBanner ${state.cls}`}>
-            <span className="txStatusIcon">{state.icon}</span>
-            <span className="txStatusLabel">{state.label}</span>
-            {txStatus === "success" && txHash && (
-                <div className="txHashSection">
-                    <p className="txHashLabel">Transaction Hash:</p>
-                    <p className="hash">{txHash}</p>
-                    <a
-                        className="txHashLink"
-                        href={`https://stellar.expert/explorer/testnet/tx/${txHash}`}
-                        target="_blank"
-                        rel="noreferrer"
-                    >
-                        🔗 View on Stellar Expert ↗
-                    </a>
-                </div>
-            )}
-        </div>
-    );
-};
-
-const SendPage = ({
-    receiverAddress,
-    setReceiverAddress,
+export default function SendPage({
+    walletAddress,
+    receiverAddr,
+    setReceiverAddr,
     sendAmount,
     setSendAmount,
     sendXLM,
     txStatus,
     txHash,
+    error,
     savedAddresses,
-    showAddressModal,
-    setShowAddressModal,
-    newContactName,
-    setNewContactName,
     saveAddress,
-    error
-}) => {
-    const location = useLocation();
+    editAddress,
+    deleteAddress
+}) {
+    const isBusy = txStatus === 'pending' || txStatus === 'signing' || txStatus === 'submitting';
 
-    // Pre-fill address if passed via navigation state
-    useEffect(() => {
-        if (location.state?.receiverAddress) {
-            setReceiverAddress(location.state.receiverAddress);
-        }
-    }, [location, setReceiverAddress]);
+    const [newAlias, setNewAlias] = React.useState('');
+    const [newAddr, setNewAddr] = React.useState('');
+    const [editingAddr, setEditingAddr] = React.useState(null); // original address of the row being edited
+    const [editAlias, setEditAlias] = React.useState('');
+    const [editAddrInput, setEditAddrInput] = React.useState('');
 
-    const handleSelectAddress = (e) => {
-        const selected = e.target.value;
-        if (selected) {
-            setReceiverAddress(selected);
+    const handleSaveContact = () => {
+        if (newAlias && newAddr) {
+            saveAddress(newAlias, newAddr);
+            setNewAlias('');
+            setNewAddr('');
         }
     };
 
-    const isBusy = txStatus === "pending" || txStatus === "signing" || txStatus === "submitting";
+    const startEdit = (e, contact) => {
+        e.stopPropagation();
+        setEditingAddr(contact.address);
+        setEditAlias(contact.name);
+        setEditAddrInput(contact.address);
+    };
+
+    const saveEdit = (e) => {
+        e.stopPropagation();
+        if (editAlias && editAddrInput) {
+            editAddress(editingAddr, editAlias, editAddrInput);
+            setEditingAddr(null);
+        }
+    };
+
+    const handleDelete = (e, addr) => {
+        e.stopPropagation();
+        if (confirm('Delete this saved address?')) {
+            deleteAddress(addr);
+        }
+    };
 
     return (
         <PageTransition>
-            <div className="container">
-                <h1 className="title">Send XLM</h1>
+            <div className="page-header">
+                <h1 className="page-title">Send XLM</h1>
+                <p className="page-subtitle">Transfer funds directly on the Stellar testnet.</p>
+            </div>
 
+            <div className="grid-2">
                 <div className="card">
-                    <h2>Send Transaction</h2>
-
-                    <div className="inputBox">
-                        <label>Recipient Address</label>
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                            <input
-                                type="text"
-                                placeholder="GXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-                                value={receiverAddress}
-                                onChange={(e) => setReceiverAddress(e.target.value)}
-                                style={{ flex: 1 }}
-                                disabled={isBusy}
-                            />
-                            <button
-                                className="btn primary"
-                                style={{ width: 'auto', marginTop: 0, padding: '10px' }}
-                                onClick={() => setShowAddressModal(true)}
-                                title="Save Address"
-                                disabled={isBusy}
-                            >
-                                +
-                            </button>
-                        </div>
+                    <h2 className="section-title" style={{ fontSize: '1rem', color: 'var(--text)' }}>Transfer Form</h2>
+                    <div className="form-group" style={{ marginTop: 24 }}>
+                        <label className="form-label">Recipient Address</label>
+                        <input
+                            type="text"
+                            placeholder="G..."
+                            value={receiverAddr}
+                            onChange={e => setReceiverAddr(e.target.value)}
+                            disabled={isBusy}
+                        />
                     </div>
-
-                    {/* Address Book Selector */}
-                    {savedAddresses.length > 0 && (
-                        <div className="inputBox">
-                            <label>Or select from Address Book</label>
-                            <select onChange={handleSelectAddress} defaultValue="" disabled={isBusy}>
-                                <option value="" disabled>Select a contact...</option>
-                                {savedAddresses.map((contact, index) => (
-                                    <option key={index} value={contact.address}>
-                                        {contact.name} ({contact.address.slice(0, 4)}...{contact.address.slice(-4)})
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    )}
-
-                    {/* Add Address Modal */}
-                    {showAddressModal && (
-                        <div className="inputBox" style={{ border: '1px solid var(--border-color)', padding: '10px', borderRadius: '8px', marginBottom: '16px' }}>
-                            <label>Save Current Address as:</label>
-                            <input
-                                type="text"
-                                placeholder="Contact Name"
-                                value={newContactName}
-                                onChange={(e) => setNewContactName(e.target.value)}
-                            />
-                            <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-                                <button className="btn success" style={{ marginTop: 0 }} onClick={saveAddress}>Save</button>
-                                <button className="btn danger" style={{ marginTop: 0 }} onClick={() => setShowAddressModal(false)}>Cancel</button>
-                            </div>
-                        </div>
-                    )}
-
-                    <div className="inputBox">
-                        <label>Amount (XLM)</label>
+                    <div className="form-group">
+                        <label className="form-label">Amount (XLM)</label>
                         <input
                             type="number"
                             placeholder="0.00"
                             value={sendAmount}
-                            onChange={(e) => setSendAmount(e.target.value)}
+                            onChange={e => setSendAmount(e.target.value)}
                             disabled={isBusy}
                         />
                     </div>
-
-                    <button className="btn success" onClick={sendXLM} disabled={isBusy}>
-                        {isBusy ? "Processing..." : "Send XLM"}
+                    <button
+                        className="btn btn-primary btn-full animate-in"
+                        onClick={sendXLM}
+                        disabled={isBusy}
+                        style={{ marginTop: 16 }}
+                    >
+                        {isBusy ? 'Processing Transfer...' : 'Confirm and Send'}
                     </button>
 
-                    {/* Transaction Status Banner */}
-                    <TxStatusBanner txStatus={txStatus} txHash={txHash} />
-
-                    {error && (
-                        <div className="errorBox">
-                            <p>{error}</p>
+                    {txStatus && txStatus !== 'success' && txStatus !== 'failed' && (
+                        <div className="status-banner pending animate-in">
+                            {txStatus === 'pending' && '⏳ Building transaction...'}
+                            {txStatus === 'signing' && '✍️ Waiting for wallet signature...'}
+                            {txStatus === 'submitting' && '📡 Submitting to Stellar network...'}
                         </div>
                     )}
+                    {txStatus === 'success' && (
+                        <div className="status-banner success animate-in">
+                            <div style={{ flex: 1 }}>
+                                ✅ Transfer Successful!
+                                <div style={{ marginTop: 6 }}><a href={`https://stellar.expert/explorer/testnet/tx/${txHash}`} target="_blank" rel="noreferrer" className="tx-link">View on Stellar Expert ↗</a></div>
+                            </div>
+                        </div>
+                    )}
+                    {error && <div className="error-box animate-in">{error}</div>}
+                </div>
+
+                <div className="card">
+                    <h2 className="section-title" style={{ fontSize: '1rem', color: 'var(--text)' }}>Address Book</h2>
+
+                    <div className="form-row" style={{ marginTop: 24, marginBottom: 24 }}>
+                        <input type="text" placeholder="Alias (e.g. Alice)" value={newAlias} onChange={e => setNewAlias(e.target.value)} disabled={isBusy} />
+                        <input type="text" placeholder="G..." value={newAddr} onChange={e => setNewAddr(e.target.value)} disabled={isBusy} />
+                        <button className="btn btn-ghost" onClick={handleSaveContact} disabled={isBusy || !newAlias || !newAddr}>Add</button>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                        {savedAddresses.length === 0 && <p className="form-label">No saved addresses.</p>}
+                        {savedAddresses.map((contact, i) => (
+                            <div
+                                key={i}
+                                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 12, border: '1px solid var(--border)', borderRadius: 8, cursor: 'pointer' }}
+                                onClick={() => !isBusy && setReceiverAddr(contact.address)}
+                                className="hover-card"
+                            >
+                                {editingAddr === contact.address ? (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }} onClick={e => e.stopPropagation()}>
+                                        <input type="text" value={editAlias} onChange={e => setEditAlias(e.target.value)} />
+                                        <input type="text" value={editAddrInput} onChange={e => setEditAddrInput(e.target.value)} />
+                                        <div style={{ display: 'flex', gap: 8 }}>
+                                            <button className="btn btn-primary btn-sm" onClick={saveEdit}>Save</button>
+                                            <button className="btn btn-ghost btn-sm" onClick={() => setEditingAddr(null)}>Cancel</button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div>
+                                            <div style={{ fontWeight: 600 }}>{contact.name}</div>
+                                            <div className="mono" style={{ fontSize: '0.72rem' }}>{contact.address.slice(0, 8)}...{contact.address.slice(-8)}</div>
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                            <button className="btn btn-ghost btn-sm" style={{ padding: '0 8px' }} onClick={(e) => startEdit(e, contact)}>✏️</button>
+                                            <button className="btn btn-ghost btn-sm" style={{ padding: '0 8px', color: 'var(--danger)' }} onClick={(e) => handleDelete(e, contact.address)}>✕</button>
+                                            <div className="form-label" style={{ marginLeft: 8 }}>Use ↗</div>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
         </PageTransition>
     );
-};
-
-export default SendPage;
+}

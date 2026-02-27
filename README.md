@@ -11,7 +11,7 @@ A modern, multi-page Web3 savings tracker built on **Stellar Testnet** with **So
 - **Smart Contract Interop**: Deploy and call `set_goal`, `get_goal`, `add_savings`, and `get_saved` functions directly from the React frontend.
 - **Robust Error Handling**: Gracefully handles (1) Wallet not found/not supported, (2) User-rejected signatures, and (3) Insufficient XLM balances.
 - **Gamified Savings**: Tracks daily savings streaks, awards SVG NFT badges (stored locally), and fires confetti upon goal completions.
-- **Community Leaderboard**: Reads on-chain contract data to build a decentralized leaderboard ranking network savers fetched from Supabase.
+- **Community Leaderboard**: Reads on-chain contract data to build a decentralized leaderboard ranking network savers.
 - **Live Transaction History**: Fetches XLM payments and Soroban contract invocations (`invoke_host_function`).
 
 ---

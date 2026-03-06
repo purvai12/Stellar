@@ -15,6 +15,8 @@ A modern, multi-page Web3 savings tracker built on **Stellar Testnet** with **So
 - **Live Transaction History**: Fetches XLM payments and Soroban contract invocations (`invoke_host_function`).
 
 ---
+### Demo Video
+![Demo Video](./savings_tracker.mp4)   
 
 ##  Screenshots
 
@@ -33,8 +35,11 @@ A modern, multi-page Web3 savings tracker built on **Stellar Testnet** with **So
 
 ![Community Page](./screenshots/community-page.jpg)
 
+### 4. Test Outputs
 
-## 4. Deployed Contract Details
+![Test Outputs](./screenshots/test-outputs.jpg)
+
+## 5. Deployed Contract Details
 
 > **Contract Address (Testnet):**
 > ![Deployed_Contract](./screenshots/deployed_contract.jpg)

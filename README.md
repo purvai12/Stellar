@@ -37,7 +37,7 @@ A modern, multi-page Web3 savings tracker built on **Stellar Testnet** with **So
 
 ### 4. Test Outputs
 
-![Test Outputs](./screenshots/test-outputs.jpg)
+![Test Outputs](./screenshots/test-outputs.png)
 
 ## 5. Deployed Contract Details
 

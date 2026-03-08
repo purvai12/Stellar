@@ -3,7 +3,7 @@ import PageTransition from '../components/PageTransition';
 import BadgeModal from '../components/BadgeModal';
 import { getBadges, BADGE_TYPES } from '../hooks/useBadges';
 
-export default function DashboardPage({ walletAddress, xlmBalance, loadingBal, streakData }) {
+export default function DashboardPage({ walletAddress, xlmBalance, rewardBalance, loadingBal, streakData }) {
     const [usdPrice, setUsdPrice] = useState(null);
     const [selectedBadge, setSelectedBadge] = useState(null);
     const badges = getBadges(walletAddress);
@@ -30,6 +30,17 @@ export default function DashboardPage({ walletAddress, xlmBalance, loadingBal, s
                     <div className="card-title">XLM Balance</div>
                     <div className="card-value">{loadingBal ? '...' : xlmBalance}</div>
                     <div className="card-sub">≈ ${totalUsd} USD</div>
+                </div>
+
+                {/* Reward Token Card */}
+                <div className="card" style={{ border: '1px solid #f59e0b', background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.05), transparent)' }}>
+                    <div className="card-title" style={{ color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        🪙 Custom Reward Tokens
+                    </div>
+                    <div className="card-value" style={{ color: '#f59e0b' }}>
+                        {loadingBal ? '...' : rewardBalance} <span style={{ fontSize: '0.8rem', opacity: 0.8 }}>RTK</span>
+                    </div>
+                    <div className="card-sub">10% Savings Bonus</div>
                 </div>
 
                 {/* Price Card */}

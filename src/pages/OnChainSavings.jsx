@@ -3,7 +3,7 @@ import * as StellarSdk from "@stellar/stellar-sdk";
 import PageTransition from "../components/PageTransition";
 
 const RPC_URL = "https://soroban-testnet.stellar.org";
-const CONTRACT_ID = "CB2QEUXSE7JNVZQIFQLTWWMTNYZFMYBUEJTHBNPBJRYU2OGRCS66K65P";
+const CONTRACT_ID = "CCXJ4ETYDS7YNJCMXEYHL3H54B5SGEPUZGAOKRHVBF7ND7H3V55QP2YL";
 const sorobanServer = new StellarSdk.rpc.Server(RPC_URL);
 
 export default function OnChainSavings({ walletAddress }) {
@@ -22,12 +22,13 @@ export default function OnChainSavings({ walletAddress }) {
       const sim = await sorobanServer.simulateTransaction(tx);
       const val = sim.result?.retval;
       if (val) {
-        setGlobalSaved(StellarSdk.scValToNative(val).toString());
+        const rawStroops = Number(StellarSdk.scValToNative(val));
+        setGlobalSaved((rawStroops / 10000000).toFixed(2));
       } else {
-        setGlobalSaved("0");
+        setGlobalSaved("0.00");
       }
     } catch {
-      setGlobalSaved("0");
+      setGlobalSaved("0.00");
     } finally {
       setLoading(false);
     }

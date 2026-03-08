@@ -1,10 +1,18 @@
 # StellaSmart Saver 
 
+[![CI/CD Pipeline](https://github.com/yourusername/stellasmart-saver/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/stellasmart-saver/actions/workflows/ci.yml)
+
 A modern, multi-page Web3 savings tracker built on **Stellar Testnet** with **Soroban smart contract** integration. Connect your favorite wallet, set goals, maintain daily savings streaks, earn NFT-style badges, and interact with the broader savings community on-chain.
 
-###  Live Demo
-> [Live Demo on Netlify](https://lucent-strudel-4b3f0b.netlify.app/)
-
+##  Requirements Fulfilled:
+- **Live Demo:** ![Netlify Link](https://lucent-strudel-4b3f0b.netlify.app/)
+- **CI/CD Pipeline:** 
+  Active and running via GitHub Actions (see badge above).  
+- **Mobile Responsive View:** 
+  Scrrenshot is provided in this file at the bottom with other screenshots.
+- **Savings Tracker Contract:** `CCXJ4ETYDS7YNJCMXEYHL3H54B5SGEPUZGAOKRHVBF7ND7H3V55QP2YL`
+- **Custom Reward Token (Pool/Asset):** `CBV6MABYTVUDMXIOSNPXT4GQ4NSJLUDZISGWRXTZXYLQYDNAWYCJY5HG` 
+- **Contract Deployment & Link Transaction Hash:** [`6f74455365bfa12eb535fa99cb7047ba95bccb51021ccd073355215...`](https://stellar.expert/explorer/testnet/tx/6f74455365bfa12eb535fa99cb7047ba95bccb51021ccd073355215527bfa008c) (Initializes inter-contract calls)
 
 ### Platform Features
 - **Multi-Wallet Support**: Integrated with `@creit-tech/stellar-wallets-kit` supporting Freighter, LOBSTR, xBull, Albedo, and more.
@@ -20,6 +28,11 @@ A modern, multi-page Web3 savings tracker built on **Stellar Testnet** with **So
 
 ##  Screenshots
 
+### Mobile Responsive View
+*The application is fully responsive and optimized for mobile devices.*
+
+![Mobile Responsive View](./screenshots/mobile-view.jpg)
+
 ### 1. Wallet Options Available (Multi-Wallet Connect)
 *Integrated with StellarWalletsKit offering Freighter, LOBSTR, xBull, and more.*
 
@@ -30,28 +43,21 @@ A modern, multi-page Web3 savings tracker built on **Stellar Testnet** with **So
 
 ![Goals Page](./screenshots/goals-page.jpg)
 
-### 3. Community Leaderboard
-*Compare your on-chain savings with the rest of the network without needing a traditional backend.*
-
-![Community Page](./screenshots/community-page.jpg)
-
-### 4. Test Outputs
+### 3. Test Outputs
 
 ![Test Outputs](./screenshots/test-outputs.png)
 
-## 5. Deployed Contract Details
+## Deployed Contract Details
 
-> **Contract Address (Testnet):**
-> ![Deployed_Contract](./screenshots/deployed_contract.jpg)
+> **Savings Tracker Contract Address (Testnet):** `CCXJ4ETYDS7YNJCMXEYHL3H54B5SGEPUZGAOKRHVBF7ND7H3V55QP2YL`
+> **Reward Token Contract Address (Testnet):** `CBV6MABYTVUDMXIOSNPXT4GQ4NSJLUDZISGWRXTZXYLQYDNAWYCJY5HG`
 > 
->  [View Contract on Stellar Expert](https://stellar.expert/explorer/testnet/contract/CB2QEUXSE7JNVZQIFQLTWWMTNYZFMYBUEJTHBNPBJRYU2OGRCS66K65P)
+> [View Tracker Contract on Stellar Expert](https://stellar.expert/explorer/testnet/contract/CCXJ4ETYDS7YNJCMXEYHL3H54B5SGEPUZGAOKRHVBF7ND7H3V55QP2YL)
 
-### Sample Contract Call Transaction
+### Sample Inter-Contract Call Transaction
 
-A verifiable transaction hash from calling `add_savings` on the testnet:
-> ![Contract_Call](./screenshots/contract_call.jpg)
->
->  [Verify Transaction on Stellar Expert](https://stellar.expert/explorer/testnet/tx/21b5e5264b301cd23b1bfd83dedba7dbbebc49c6fcb99f2e3be75ab78bba33cc)
+A verifiable transaction hash demonstrating the `add_savings` invocation internally triggering the Token `mint` function on the testnet:
+> `8da6244de410d281393c21868cfa2e3cc31c9cd95d997728533cfd45b610cf67`(https://stellar.expert/explorer/testnet/tx/8da6244de410d281393c21868cfa2e3cc31c9cd95d997728533cfd45b610cf67)
 
 ---
 
@@ -81,8 +87,8 @@ A verifiable transaction hash from calling `add_savings` on the testnet:
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/stellasmart-saver.git
-   cd stellasmart-saver
+   git clone https://github.com/purvai12/Stellar.git
+   cd Stellar-main
    ```
 
 2. **Install dependencies**

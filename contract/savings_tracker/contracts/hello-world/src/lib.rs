@@ -1,7 +1,7 @@
 #![no_std]
 
 use soroban_sdk::{
-    contract, contractimpl, contracttype, symbol_short, Address, Env, Symbol,
+    contract, contractimpl, contracttype, symbol_short, Address, Env, Symbol, IntoVal,
 };
 
 #[contracttype]
@@ -12,12 +12,20 @@ pub struct GoalData {
 }
 
 const DATA_KEY: Symbol = symbol_short!("DATA");
+const TOKEN_KEY: Symbol = symbol_short!("TOKEN");
 
 #[contract]
 pub struct SavingsTracker;
 
 #[contractimpl]
 impl SavingsTracker {
+    // Initialize with Reward Token Address
+    pub fn initialize(env: Env, token_addr: Address) {
+        if env.storage().instance().has(&TOKEN_KEY) {
+            panic!("already initialized");
+        }
+        env.storage().instance().set(&TOKEN_KEY, &token_addr);
+    }
     // Set Goal Amount
     pub fn set_goal(env: Env, user: Address, goal_amount: i128) {
         user.require_auth();
@@ -57,7 +65,20 @@ impl SavingsTracker {
 
         // Event for real-time tracking
         env.events()
-            .publish((symbol_short!("save"), user), amount);
+            .publish((symbol_short!("save"), user.clone()), amount);
+            
+        // Inter-contract call to mint reward tokens (10% of savings added)
+        if let Some(token_addr) = env.storage().instance().get::<_, Address>(&TOKEN_KEY) {
+            let reward_amount = amount / 10;
+            if reward_amount > 0 {
+                // Call `mint(to, amount)` on the token contract
+                env.invoke_contract::<()>(
+                    &token_addr,
+                    &symbol_short!("mint"),
+                    soroban_sdk::vec![&env, user.into_val(&env), reward_amount.into_val(&env)],
+                );
+            }
+        }
     }
 
     // Fetch Goal

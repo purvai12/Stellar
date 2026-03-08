@@ -23,6 +23,9 @@ import { recordSavingToday, getStreakData } from './hooks/useStreak';
 import { getBadges, awardBadge, checkAndAwardStreakBadges } from './hooks/useBadges';
 
 const HORIZON = new StellarSdk.Horizon.Server('https://horizon-testnet.stellar.org');
+const sorobanServer = new StellarSdk.rpc.Server('https://soroban-testnet.stellar.org');
+const SAVINGS_CONTRACT = "CCXJ4ETYDS7YNJCMXEYHL3H54B5SGEPUZGAOKRHVBF7ND7H3V55QP2YL";
+const TOKEN_CONTRACT = "CBV6MABYTVUDMXIOSNPXT4GQ4NSJLUDZISGWRXTZXYLQYDNAWYCJY5HG";
 
 // ─── Error classifier ─────────────────────────────────────────────────────
 const classify = (err, ctx = '') => {
@@ -42,6 +45,7 @@ const classify = (err, ctx = '') => {
 export default function App() {
   const [walletAddress, setWalletAddress] = useState('');
   const [xlmBalance, setXlmBalance] = useState(null);
+  const [rewardBalance, setRewardBalance] = useState('0');
   const [loadingBal, setLoadingBal] = useState(false);
   const [transactions, setTransactions] = useState([]);
   const [sendStatus, setSendStatus] = useState('');
@@ -52,6 +56,96 @@ export default function App() {
   const [savedAddresses, setSavedAddresses] = useState([]);
   const [newBadge, setNewBadge] = useState(null); // badge award popup
   const [streakData, setStreakData] = useState({ streak: 0 });
+  const [liveEvents, setLiveEvents] = useState([]);
+
+  // ── Stream real-time events ──────────────────────────────────────────────
+  useEffect(() => {
+    let streamClose;
+    try {
+      // Instead of streaming ALL operations which is noisy, we poll getEvents 
+      // specific to our contracts since that directly gives us the contract interactions.
+      let lastLedger = 0;
+
+      const pollEvents = async () => {
+        try {
+          const latest = await sorobanServer.getLatestLedger();
+          const currentNetworkLedger = latest.sequence;
+
+          if (lastLedger === 0) {
+            lastLedger = currentNetworkLedger - 1;
+            return;
+          }
+
+          if (lastLedger >= currentNetworkLedger) {
+            return;
+          }
+
+          const res = await sorobanServer.getEvents({
+            startLedger: lastLedger + 1,
+            filters: [
+              { type: "contract", contractIds: [SAVINGS_CONTRACT, TOKEN_CONTRACT] }
+            ],
+            limit: 10,
+          });
+
+          if (res.events && res.events.length > 0) {
+            let maxLedger = lastLedger;
+
+            res.events.forEach(ev => {
+              const eventId = ev.id;
+              let contractStr = '';
+              if (typeof ev.contractId === 'string') {
+                contractStr = ev.contractId;
+              } else if (ev.contractId && ev.contractId.data) {
+                contractStr = StellarSdk.StrKey.encodeContract(ev.contractId.data);
+              } else if (ev.contractId && ev.contractId.type === 'Buffer') {
+                contractStr = StellarSdk.StrKey.encodeContract(Buffer.from(ev.contractId));
+              } else {
+                contractStr = String(ev.contractId);
+              }
+
+              const isToken = contractStr === TOKEN_CONTRACT;
+
+              // Track highest ledger seen in this batch
+              if (ev.ledger > maxLedger) {
+                maxLedger = ev.ledger;
+              }
+
+              setLiveEvents(prev => {
+                if (prev.find(p => p.id === eventId)) return prev;
+                const updated = [...prev, {
+                  id: eventId,
+                  type: isToken ? 'mint' : 'save',
+                  source: contractStr.length > 8 ?
+                    contractStr.substring(0, 4) + '...' + contractStr.substring(contractStr.length - 4) :
+                    contractStr,
+                  timestamp: new Date().toLocaleTimeString()
+                }];
+                return updated.slice(-3);
+              });
+
+              setTimeout(() => {
+                setLiveEvents(prev => prev.filter(e => e.id !== eventId));
+              }, 6000);
+            });
+
+            lastLedger = Math.max(res.latestLedger || 0, maxLedger);
+          } else if (res.latestLedger) {
+            lastLedger = res.latestLedger;
+          }
+        } catch (e) { console.error('Polling error', e); }
+      };
+
+      // Poll every 4 seconds mimicking a stream
+      streamClose = setInterval(pollEvents, 4000);
+      pollEvents(); // initial call
+
+    } catch (e) { console.error(e) }
+
+    return () => {
+      if (streamClose) clearInterval(streamClose);
+    };
+  }, []);
 
   // Load saved addresses + streak on wallet change
   useEffect(() => {
@@ -79,6 +173,25 @@ export default function App() {
       const acct = await HORIZON.loadAccount(pk);
       const xlm = acct.balances.find(b => b.asset_type === 'native');
       setXlmBalance(xlm ? parseFloat(xlm.balance).toFixed(2) : '0.00');
+
+      // Fetch Reward Token Balance
+      try {
+        const contract = new StellarSdk.Contract(TOKEN_CONTRACT);
+        const tx = new StellarSdk.TransactionBuilder(await sorobanServer.getAccount(pk), { fee: "100", networkPassphrase: StellarSdk.Networks.TESTNET })
+          .addOperation(contract.call("balance", new StellarSdk.Address(pk).toScVal()))
+          .setTimeout(60).build();
+        const sim = await sorobanServer.simulateTransaction(tx);
+        const val = sim.result?.retval;
+        if (val) {
+          const rawStroops = Number(StellarSdk.scValToNative(val));
+          setRewardBalance((rawStroops / 10000000).toFixed(2));
+        } else {
+          setRewardBalance('0.00');
+        }
+      } catch (e) {
+        console.error("Token balance fetch error:", e);
+        setRewardBalance('0.00');
+      }
       // fetch payments
       const resp = await HORIZON.payments().forAccount(pk).limit(15).order('desc').call();
       const payments = resp.records
@@ -200,12 +313,13 @@ export default function App() {
   };
 
   // ── Called from GoalsPage when savings recorded ──────────────────────────
-  const onSavingRecorded = (wallet) => {
+  const onSavingRecorded = async (wallet) => {
     const updated = recordSavingToday(wallet);
     if (!updated) return;
     setStreakData(updated);
     const awarded = checkAndAwardStreakBadges(wallet, updated.streak);
     if (awarded.length > 0) setNewBadge(awarded[0]);
+    await fetchBalance(wallet);
   };
 
   const isConnectedWallet = !!walletAddress;
@@ -255,6 +369,27 @@ export default function App() {
           <BadgeModal badge={newBadge} onClose={() => setNewBadge(null)} />
         )}
 
+        {/* Real-time Streaming Toasts */}
+        <div className="event-toast-container">
+          {liveEvents.map((ev) => (
+            <div key={ev.id} className="event-toast" style={{ borderColor: ev.type === 'mint' ? '#f59e0b' : 'var(--success)' }}>
+              <div className="event-toast-icon" style={{ background: ev.type === 'mint' ? '#f59e0b' : 'var(--success)', boxShadow: `0 0 15px ${ev.type === 'mint' ? 'rgba(245, 158, 11, 0.4)' : 'rgba(34, 197, 94, 0.4)'}` }}>
+                {ev.type === 'mint' ? '🪙' : '🚀'}
+              </div>
+              <div className="event-toast-content">
+                <span className="event-toast-title">
+                  {ev.type === 'mint' ? 'Reward Minted!' : 'Live Saving Event!'}
+                </span>
+                <span className="event-toast-desc">
+                  {ev.type === 'mint'
+                    ? `Bonus tokens issued by contract ${ev.source} at ${ev.timestamp}`
+                    : `Someone interacted with Savings Tracker at ${ev.timestamp}`}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+
         {isConnectedWallet && (
           <Sidebar walletAddress={walletAddress} disconnectWallet={disconnectWallet} />
         )}
@@ -273,6 +408,7 @@ export default function App() {
               ? <DashboardPage
                 walletAddress={walletAddress}
                 xlmBalance={xlmBalance}
+                rewardBalance={rewardBalance}
                 loadingBal={loadingBal}
                 streakData={streakData}
                 transactions={transactions}

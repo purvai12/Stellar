@@ -1,6 +1,6 @@
 # StellaSmart Saver 
 
-[![CI/CD Pipeline](https://github.com/yourusername/stellasmart-saver/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/stellasmart-saver/actions/workflows/ci.yml)
+[![CI/CD Pipeline](https://github.com/purvai12/Stellar)/actions/workflows/ci.yml/badge.svg)](https://github.com/purvai12/Stellar)/actions/workflows/ci.yml)
 
 A modern, multi-page Web3 savings tracker built on **Stellar Testnet** with **Soroban smart contract** integration. Connect your favorite wallet, set goals, maintain daily savings streaks, earn NFT-style badges, and interact with the broader savings community on-chain.
 

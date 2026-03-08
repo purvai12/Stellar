@@ -91,27 +91,37 @@ export default function GoalsPage({ walletAddress, onSavingRecorded, onBadgeAwar
     const classifyError = (err) => {
         const msg = (err?.message || "").toLowerCase();
         if (msg.includes("rejected") || msg.includes("declined")) return "🚫 Transaction rejected.";
-        return "⚠️ Contract call failed.";
+        if (msg.includes("not found") || msg.includes("404")) return "⚠️ Account unfunded on Testnet. Fund via Friendbot!";
+        if (msg.includes("balance")) return "⚠️ Insufficient balance.";
+        return "⚠️ Contract call failed: " + (err?.message || "Unknown Error");
     };
 
     const handleAddSavings = async (id) => {
-        if (!addInput || isNaN(addInput) || Number(addInput) <= 0) {
+        const parsedInput = Number(String(addInput).replace(',', '.'));
+        if (!addInput || isNaN(parsedInput) || parsedInput <= 0) {
             setError("Enter a valid amount."); return;
         }
         try {
             setError(''); setStatus('building');
             const contract = new StellarSdk.Contract(CONTRACT_ID);
             const account = await sorobanServer.getAccount(walletAddress);
-            const stroopsAmount = Math.floor(Number(addInput) * 10000000);
+            const stroopsAmount = Math.floor(parsedInput * 10000000);
             const tx = new StellarSdk.TransactionBuilder(account, { fee: "100", networkPassphrase: NETWORK_PASSPHRASE })
                 .addOperation(contract.call("add_savings", new StellarSdk.Address(walletAddress).toScVal(), StellarSdk.nativeToScVal(stroopsAmount, { type: "i128" })))
                 .setTimeout(60).build();
 
             const sim = await sorobanServer.simulateTransaction(tx);
+            if (!StellarSdk.SorobanRpc.Api.isSimulationSuccess(sim)) {
+                console.error("Simulation failed:", sim);
+                throw new Error("simulation incorrect");
+            }
             const preparedTx = StellarSdk.rpc.assembleTransaction(tx, sim).build();
 
             setStatus('signing');
-            const { signedTxXdr } = await StellarWalletsKit.signTransaction(preparedTx.toXDR(), { networkPassphrase: NETWORK_PASSPHRASE });
+            const { signedTxXdr } = await StellarWalletsKit.signTransaction(preparedTx.toXDR(), {
+                networkPassphrase: NETWORK_PASSPHRASE,
+                accountToSign: walletAddress
+            });
             if (!signedTxXdr) throw new Error("Signature rejected");
             const signedTx = StellarSdk.TransactionBuilder.fromXDR(signedTxXdr, NETWORK_PASSPHRASE);
 
@@ -122,7 +132,7 @@ export default function GoalsPage({ walletAddress, onSavingRecorded, onBadgeAwar
 
             const newGoals = goals.map(g => {
                 if (g.id !== id) return g;
-                const newSaved = g.saved + Number(addInput);
+                const newSaved = g.saved + parsedInput;
                 const isComplete = g.target > 0 && newSaved >= g.target;
 
                 if (isComplete && !g.completed) {

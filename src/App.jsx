@@ -259,10 +259,11 @@ export default function App() {
       setSendError(''); setSendStatus(''); setSendHash('');
       if (!walletAddress) { setSendError('Connect your wallet first.'); return; }
       if (!receiverAddr.trim()) { setSendError('Enter a recipient address.'); return; }
-      if (!sendAmount || isNaN(sendAmount) || +sendAmount <= 0) { setSendError('Enter a valid amount.'); return; }
+      const parsedAmount = Number(String(sendAmount).replace(',', '.'));
+      if (!sendAmount || isNaN(parsedAmount) || parsedAmount <= 0) { setSendError('Enter a valid amount.'); return; }
 
       const dest = receiverAddr.trim();
-      const amount = parseFloat(sendAmount).toFixed(7);
+      const amount = parsedAmount.toFixed(7);
       setSendStatus('pending');
       const acct = await HORIZON.loadAccount(walletAddress);
       const fee = await HORIZON.fetchBaseFee();
@@ -274,7 +275,10 @@ export default function App() {
         .setTimeout(60).build();
 
       setSendStatus('signing');
-      const { signedTxXdr } = await StellarWalletsKit.signTransaction(tx.toXDR(), { networkPassphrase: StellarSdk.Networks.TESTNET });
+      const { signedTxXdr } = await StellarWalletsKit.signTransaction(tx.toXDR(), {
+        networkPassphrase: StellarSdk.Networks.TESTNET,
+        accountToSign: walletAddress
+      });
       if (!signedTxXdr) { setSendError('🚫 Signature rejected.'); setSendStatus('failed'); return; }
 
       setSendStatus('submitting');

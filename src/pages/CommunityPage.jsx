@@ -37,6 +37,13 @@ export default function CommunityPage({ walletAddress, streakData, onBadgeAwarde
             }
             if (communityList.includes(walletAddress)) {
                 setHasJoined(true);
+                // Retroactively award the badge if they joined previously but don't have it on this device
+                if (!hasBadge(walletAddress, 'COMMUNITY_JOIN')) {
+                    const badge = awardBadge(walletAddress, 'COMMUNITY_JOIN');
+                    if (badge && onBadgeAwarded) {
+                        onBadgeAwarded(badge);
+                    }
+                }
             }
 
             // 2. Fetch all of their Soroban on-chain savings balances

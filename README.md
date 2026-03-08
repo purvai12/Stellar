@@ -4,7 +4,7 @@
 A modern, multi-page Web3 savings tracker built on **Stellar Testnet** with **Soroban smart contract** integration. Connect your favorite wallet, set goals, maintain daily savings streaks, earn NFT-style badges, and interact with the broader savings community on-chain.
 
 ##  Requirements Fulfilled:
-- **Live Demo:** ![Vercel Link](https://stellasmartsaver.vercel.app/)
+- **Live Demo:** [![Vercel](https://img.shields.io/badge/Live%20Demo-Vercel-black?logo=vercel)](https://stellasmartsaver.vercel.app/)
 - **CI/CD Pipeline:** 
   Active and running via GitHub Actions (see badge above).  
 - **Mobile Responsive View:** 
@@ -23,7 +23,7 @@ A modern, multi-page Web3 savings tracker built on **Stellar Testnet** with **So
 
 ---
 ### Demo Video
-![Demo Video](./savings_tracker.mp4)   
+[![Watch Demo](./demo-thumbnail.png)](./savings_tracker.mp4)
 
 ##  Screenshots
 

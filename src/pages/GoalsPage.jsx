@@ -6,7 +6,7 @@ import { fireConfetti } from '../hooks/useConfetti';
 
 const RPC_URL = "https://soroban-testnet.stellar.org";
 const NETWORK_PASSPHRASE = StellarSdk.Networks.TESTNET;
-const CONTRACT_ID = "CB2QEUXSE7JNVZQIFQLTWWMTNYZFMYBUEJTHBNPBJRYU2OGRCS66K65P";
+const CONTRACT_ID = "CCXJ4ETYDS7YNJCMXEYHL3H54B5SGEPUZGAOKRHVBF7ND7H3V55QP2YL";
 const sorobanServer = new StellarSdk.rpc.Server(RPC_URL);
 
 const DEFAULT_GOALS = [
@@ -102,8 +102,9 @@ export default function GoalsPage({ walletAddress, onSavingRecorded, onBadgeAwar
             setError(''); setStatus('building');
             const contract = new StellarSdk.Contract(CONTRACT_ID);
             const account = await sorobanServer.getAccount(walletAddress);
+            const stroopsAmount = Math.floor(Number(addInput) * 10000000);
             const tx = new StellarSdk.TransactionBuilder(account, { fee: "100", networkPassphrase: NETWORK_PASSPHRASE })
-                .addOperation(contract.call("add_savings", new StellarSdk.Address(walletAddress).toScVal(), StellarSdk.nativeToScVal(Number(addInput), { type: "i128" })))
+                .addOperation(contract.call("add_savings", new StellarSdk.Address(walletAddress).toScVal(), StellarSdk.nativeToScVal(stroopsAmount, { type: "i128" })))
                 .setTimeout(60).build();
 
             const sim = await sorobanServer.simulateTransaction(tx);

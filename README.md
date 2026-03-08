@@ -1,15 +1,14 @@
 # StellaSmart Saver 
 
-[![CI/CD Pipeline](https://github.com/purvai12/Stellar)/actions/workflows/ci.yml/badge.svg)](https://github.com/purvai12/Stellar)/actions/workflows/ci.yml)
-
+[![CI/CD Pipeline](https://github.com/purvai12/Stellar/actions/workflows/ci.yml/badge.svg)](https://github.com/purvai12/Stellar/actions/workflows/ci.yml)
 A modern, multi-page Web3 savings tracker built on **Stellar Testnet** with **Soroban smart contract** integration. Connect your favorite wallet, set goals, maintain daily savings streaks, earn NFT-style badges, and interact with the broader savings community on-chain.
 
 ##  Requirements Fulfilled:
-- **Live Demo:** ![Netlify Link](https://lucent-strudel-4b3f0b.netlify.app/)
+- **Live Demo:** ![Vercel Link](https://stellasmartsaver.vercel.app/)
 - **CI/CD Pipeline:** 
   Active and running via GitHub Actions (see badge above).  
 - **Mobile Responsive View:** 
-  Scrrenshot is provided in this file at the bottom with other screenshots.
+  Screenshot is provided in this file at the bottom with other screenshots.
 - **Savings Tracker Contract:** `CCXJ4ETYDS7YNJCMXEYHL3H54B5SGEPUZGAOKRHVBF7ND7H3V55QP2YL`
 - **Custom Reward Token (Pool/Asset):** `CBV6MABYTVUDMXIOSNPXT4GQ4NSJLUDZISGWRXTZXYLQYDNAWYCJY5HG` 
 - **Contract Deployment & Link Transaction Hash:** [`6f74455365bfa12eb535fa99cb7047ba95bccb51021ccd073355215...`](https://stellar.expert/explorer/testnet/tx/6f74455365bfa12eb535fa99cb7047ba95bccb51021ccd073355215527bfa008c) (Initializes inter-contract calls)

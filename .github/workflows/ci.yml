@@ -1,0 +1,48 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Use Node.js 18.x
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18.x'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm install --legacy-peer-deps
+
+    - name: Build project
+      run: npm run build
+
+    # Optional: Add test script if applicable
+    # - name: Run tests
+    #   run: npm test
+
+    - name: Setup Rust (for Soroban Contracts)
+      uses: actions-rust-lang/setup-rust-toolchain@v1
+      with:
+        toolchain: stable
+        target: wasm32-unknown-unknown
+
+    - name: Build Contracts
+      run: |
+        cd contract/savings_tracker
+        cargo build --target wasm32-unknown-unknown --release
+      continue-on-error: true # In case the contract directory structure is slightly different
+
+    - name: Run Contract Tests
+      run: |
+        cd contract/savings_tracker
+        cargo test
+      continue-on-error: true

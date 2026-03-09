@@ -168,18 +168,20 @@ export default function App() {
 
   const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
 
-  // Load saved addresses + streak on wallet change
+  // Initialize Wallet Kit ONCE on mount
   useEffect(() => {
-    // Initialize V3 API
     StellarWalletsKit.init({
       network: Networks.TESTNET,
-      selectedWalletId: 'freighter',
       modules: [
         new FreighterModule(),
         new AlbedoModule(),
         new LobstrModule()
       ],
     });
+  }, []);
+
+  // Load saved addresses + streak on wallet change
+  useEffect(() => {
 
     if (!walletAddress) return;
     const saved = localStorage.getItem('stellarAddresses');

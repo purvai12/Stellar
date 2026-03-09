@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import PageTransition from '../components/PageTransition';
 import BadgeModal from '../components/BadgeModal';
-import { getBadges, BADGE_TYPES } from '../hooks/useBadges';
+import { getBadges, BADGE_TYPES, awardBadge, hasBadge } from '../hooks/useBadges';
 
 export default function DashboardPage({ walletAddress, xlmBalance, rewardBalance, loadingBal, streakData }) {
     const [usdPrice, setUsdPrice] = useState(null);
@@ -13,7 +13,20 @@ export default function DashboardPage({ walletAddress, xlmBalance, rewardBalance
             .then(r => r.json())
             .then(d => setUsdPrice(parseFloat(d.data.amount)))
             .catch(console.error);
-    }, []);
+
+        // Retroactive Check: Re-award Goal badge if they completed a goal prior to the local-storage fix
+        if (walletAddress && !hasBadge(walletAddress, 'GOAL_COMPLETE')) {
+            try {
+                const savedGoalsStr = localStorage.getItem(`goals_${walletAddress}`);
+                if (savedGoalsStr) {
+                    const goalsArr = JSON.parse(savedGoalsStr);
+                    if (goalsArr.some(g => g.completed)) {
+                        awardBadge(walletAddress, 'GOAL_COMPLETE');
+                    }
+                }
+            } catch (e) { console.error("Retro badge error", e); }
+        }
+    }, [walletAddress]);
 
     const totalUsd = xlmBalance && usdPrice ? (xlmBalance * usdPrice).toFixed(2) : '0.00';
 

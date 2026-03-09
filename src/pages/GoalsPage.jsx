@@ -3,10 +3,11 @@ import PageTransition from '../components/PageTransition';
 import * as StellarSdk from '@stellar/stellar-sdk';
 import { StellarWalletsKit } from '@creit-tech/stellar-wallets-kit';
 import { fireConfetti } from '../hooks/useConfetti';
+import { awardBadge } from '../hooks/useBadges';
 
 const RPC_URL = "https://soroban-testnet.stellar.org";
 const NETWORK_PASSPHRASE = StellarSdk.Networks.TESTNET;
-const CONTRACT_ID = "CCXJ4ETYDS7YNJCMXEYHL3H54B5SGEPUZGAOKRHVBF7ND7H3V55QP2YL";
+const CONTRACT_ID = "CDGPV4NRFR4IG7QIM7IDED623IC5B6B2Q5GFUURRKUBSEGKKKWHQJFMX";
 const sorobanServer = new StellarSdk.rpc.Server(RPC_URL);
 
 const DEFAULT_GOALS = [
@@ -36,16 +37,16 @@ const getLocalGoals = (wallet) => {
 
 export default function GoalsPage({ walletAddress, onSavingRecorded, onBadgeAwarded }) {
     const [goals, setGoals] = useState([]);
-    const [activeGoal, setActiveGoal] = useState(null); // which goal is being edited/added to
+    const [activeGoal, setActiveGoal] = useState(null); // 'id-setup', 'id-add', 'id-extract'
     const [targetInput, setTargetInput] = useState('');
     const [addInput, setAddInput] = useState('');
-
+    const [extractInput, setExtractInput] = useState('');
+    const [status, setStatus] = useState('');
     // New goal state
     const [isAddingNew, setIsAddingNew] = useState(false);
     const [newGoalIcon, setNewGoalIcon] = useState('🎯');
     const [newGoalName, setNewGoalName] = useState('');
 
-    const [status, setStatus] = useState('');
     const [error, setError] = useState('');
 
     useEffect(() => {
@@ -111,8 +112,8 @@ export default function GoalsPage({ walletAddress, onSavingRecorded, onBadgeAwar
                 .setTimeout(60).build();
 
             const sim = await sorobanServer.simulateTransaction(tx);
-            if (!StellarSdk.SorobanRpc.Api.isSimulationSuccess(sim)) {
-                console.error("Simulation failed:", sim);
+            if (sim.error) {
+                console.error("Simulation failed:", sim.error);
                 throw new Error("simulation incorrect");
             }
             const preparedTx = StellarSdk.rpc.assembleTransaction(tx, sim).build();
@@ -137,7 +138,10 @@ export default function GoalsPage({ walletAddress, onSavingRecorded, onBadgeAwar
 
                 if (isComplete && !g.completed) {
                     fireConfetti('goal');
-                    onBadgeAwarded && onBadgeAwarded({ id: 'GOAL_COMPLETE', icon: '🏆', title: 'Goal Achieved', desc: `Completed: ${g.name}` });
+                    const badge = awardBadge(walletAddress, 'GOAL_COMPLETE');
+                    if (badge && onBadgeAwarded) {
+                        onBadgeAwarded({ ...badge, desc: `Completed: ${g.name}` });
+                    }
                 }
 
                 return { ...g, saved: newSaved, completed: isComplete || g.completed };
@@ -149,6 +153,77 @@ export default function GoalsPage({ walletAddress, onSavingRecorded, onBadgeAwar
             onSavingRecorded(walletAddress);
 
             setAddInput('');
+            setActiveGoal(null);
+            setTimeout(() => setStatus(''), 3000);
+        } catch (err) {
+            console.error(err);
+            setError(classifyError(err));
+            setStatus('failed');
+        }
+    };
+
+    const handleExtractSavings = async (id) => {
+        if (!extractInput || isNaN(extractInput) || Number(extractInput) <= 0) return;
+
+        // Handle European commas: "0,5" -> "0.5"
+        const normalizedInput = extractInput.replace(',', '.');
+        const parsedInput = parseFloat(normalizedInput);
+        if (isNaN(parsedInput)) return;
+
+        const goal = goals.find(g => g.id === id);
+        if (!goal || goal.saved < parsedInput) {
+            setError('Insufficient savings to extract that amount.');
+            setStatus('failed');
+            setTimeout(() => setStatus(''), 3000);
+            return;
+        }
+
+        setError('');
+        setStatus('building');
+
+        try {
+            const contract = new StellarSdk.Contract(CONTRACT_ID);
+            const account = await sorobanServer.getAccount(walletAddress);
+            const stroopsAmount = Math.floor(parsedInput * 10000000);
+            const tx = new StellarSdk.TransactionBuilder(account, { fee: "100", networkPassphrase: NETWORK_PASSPHRASE })
+                .addOperation(contract.call("extract_savings", new StellarSdk.Address(walletAddress).toScVal(), StellarSdk.nativeToScVal(stroopsAmount, { type: "i128" })))
+                .setTimeout(60).build();
+
+            const sim = await sorobanServer.simulateTransaction(tx);
+            if (sim.error) {
+                console.error("Simulation failed:", sim.error);
+                throw new Error("simulation incorrect");
+            }
+            const preparedTx = StellarSdk.rpc.assembleTransaction(tx, sim).build();
+
+            setStatus('signing');
+            const { signedTxXdr } = await StellarWalletsKit.signTransaction(preparedTx.toXDR(), {
+                networkPassphrase: NETWORK_PASSPHRASE,
+                accountToSign: walletAddress
+            });
+            if (!signedTxXdr) throw new Error("Signature rejected");
+            const signedTx = StellarSdk.TransactionBuilder.fromXDR(signedTxXdr, NETWORK_PASSPHRASE);
+
+            setStatus('submitting');
+            await sorobanServer.sendTransaction(signedTx);
+
+            setStatus('success');
+
+            const newGoals = goals.map(g => {
+                if (g.id !== id) return g;
+                // If they pull out savings, they might un-complete the goal
+                const newSaved = g.saved - parsedInput;
+                const isComplete = g.target > 0 && newSaved >= g.target;
+                return { ...g, saved: newSaved, completed: isComplete };
+            });
+
+            setGoals(newGoals);
+            saveLocalGoals(newGoals);
+
+            // Fetch generic balances using the passed down App level hook
+            onSavingRecorded(walletAddress);
+
+            setExtractInput('');
             setActiveGoal(null);
             setTimeout(() => setStatus(''), 3000);
         } catch (err) {
@@ -221,14 +296,25 @@ export default function GoalsPage({ walletAddress, onSavingRecorded, onBadgeAwar
                                     <button className="btn btn-primary" onClick={() => handleAddSavings(g.id)} disabled={!!status}>Save</button>
                                     <button className="btn btn-ghost" onClick={() => setActiveGoal(null)} disabled={!!status}>Cancel</button>
                                 </div>
+                            ) : activeGoal === `${g.id}-extract` ? (
+                                <div className="form-row" style={{ marginTop: 12 }}>
+                                    <input type="number" placeholder="Extract XLM" value={extractInput} onChange={e => setExtractInput(e.target.value)} disabled={!!status} />
+                                    <button className="btn btn-primary" style={{ background: 'var(--danger)' }} onClick={() => handleExtractSavings(g.id)} disabled={!!status}>Withdraw</button>
+                                    <button className="btn btn-ghost" onClick={() => setActiveGoal(null)} disabled={!!status}>Cancel</button>
+                                </div>
                             ) : (
-                                <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                                <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
                                     <button className="btn btn-ghost btn-sm" onClick={() => { setActiveGoal(`${g.id}-setup`); setTargetInput(g.target || ''); }} disabled={!!status}>
                                         {g.target > 0 ? 'Edit Target' : 'Set Target'}
                                     </button>
                                     {g.target > 0 && !g.completed && (
                                         <button className="btn btn-primary btn-sm" onClick={() => { setActiveGoal(`${g.id}-add`); setAddInput(''); }} disabled={!!status}>
                                             + Add Savings
+                                        </button>
+                                    )}
+                                    {g.saved > 0 && (
+                                        <button className="btn btn-ghost btn-sm" style={{ color: 'var(--danger)' }} onClick={() => { setActiveGoal(`${g.id}-extract`); setExtractInput(''); }} disabled={!!status}>
+                                            - Extract
                                         </button>
                                     )}
                                 </div>

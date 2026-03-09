@@ -25,8 +25,8 @@ import { getBadges, awardBadge, checkAndAwardStreakBadges } from './hooks/useBad
 
 const HORIZON = new StellarSdk.Horizon.Server('https://horizon-testnet.stellar.org');
 const sorobanServer = new StellarSdk.rpc.Server('https://soroban-testnet.stellar.org');
-const SAVINGS_CONTRACT = "CCXJ4ETYDS7YNJCMXEYHL3H54B5SGEPUZGAOKRHVBF7ND7H3V55QP2YL";
-const TOKEN_CONTRACT = "CBV6MABYTVUDMXIOSNPXT4GQ4NSJLUDZISGWRXTZXYLQYDNAWYCJY5HG";
+const SAVINGS_CONTRACT = "CDGPV4NRFR4IG7QIM7IDED623IC5B6B2Q5GFUURRKUBSEGKKKWHQJFMX";
+const TOKEN_CONTRACT = "CBSGY2RHQ4C5UP7L37L5LP62UXOVAIXOBHGJR3P3XRJZFQ3ROZFS5ZJ3";
 
 // ─── Error classifier ─────────────────────────────────────────────────────
 const classify = (err, ctx = '') => {
@@ -109,6 +109,15 @@ export default function App() {
               }
 
               const isToken = contractStr === TOKEN_CONTRACT;
+              // Determine type
+              let evType = 'save';
+              if (isToken) evType = 'mint';
+              if (ev.topics && ev.topics[0] && ev.topics[0].value) {
+                const topicVal = String(ev.topics[0].value);
+                if (topicVal.includes('extract') || topicVal.includes('101, 120, 116, 114, 97, 99, 116')) { // "extract" chars
+                  evType = 'extract';
+                }
+              }
 
               // Track highest ledger seen in this batch
               if (ev.ledger > maxLedger) {
@@ -119,7 +128,7 @@ export default function App() {
                 if (prev.find(p => p.id === eventId)) return prev;
                 const updated = [...prev, {
                   id: eventId,
-                  type: isToken ? 'mint' : 'save',
+                  type: evType,
                   source: contractStr.length > 8 ?
                     contractStr.substring(0, 4) + '...' + contractStr.substring(contractStr.length - 4) :
                     contractStr,
@@ -228,22 +237,53 @@ export default function App() {
 
       // fetch operations (to catch soroban invokeHostFunction)
       const opResp = await HORIZON.operations().forAccount(pk).limit(15).order('desc').call();
-      const invocations = opResp.records
+
+      // We asynchronously fetch transaction details for each operation to parse XDR parameters
+      const invocationsPromises = opResp.records
         .filter(r => r.type === 'invoke_host_function')
-        .map(r => ({
-          id: r.id,
-          type: 'sent', // Smart contract invocations generally cost gas/funds from caller
-          amount: 'Contract Call', // No clean way to parse abstract parameters here immediately
-          date: new Date(r.created_at).toLocaleDateString(),
-          time: new Date(r.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          hash: r.transaction_hash,
-          counterparty: r.source_account,
-        }));
+        .map(async r => {
+          let parsedAmount = 'Contract Call';
+          let parsedType = 'sent';
+          try {
+            const txDetails = await r.transaction();
+            const txEnv = StellarSdk.TransactionBuilder.fromXDR(txDetails.envelope_xdr, StellarSdk.Networks.TESTNET);
+            const op = txEnv.operations.find(o => o.type === 'invokeHostFunction');
+
+            if (op && op.func && op.func.value() && op.func.value().args()) {
+              const args = op.func.value().args();
+              const funcName = op.func.value().functionName().toString('utf-8');
+
+              if (funcName === 'add_savings' || funcName === 'extract_savings') {
+                // The second argument is the i128 amount in stroops
+                if (args.length >= 2) {
+                  const stroops = StellarSdk.scValToNative(args[1]);
+                  const val = (Number(stroops) / 10000000).toFixed(2);
+                  parsedType = funcName === 'add_savings' ? 'received' : 'sent';
+                  parsedAmount = funcName === 'add_savings' ? `Saved ${val} XLM` : `Extracted ${val} XLM`;
+                }
+              }
+            }
+          } catch (e) {
+            console.warn("Failed to parse invocation XDR for tx", r.transaction_hash, e);
+          }
+
+          return {
+            id: r.id,
+            type: parsedType,
+            amount: parsedAmount,
+            date: new Date(r.created_at).toLocaleDateString(),
+            time: new Date(r.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            hash: r.transaction_hash,
+            counterparty: r.source_account,
+          };
+        });
+
+      const invocations = await Promise.all(invocationsPromises);
 
       // Merge and sort
-      const merged = [...payments, ...invocations].sort((a, b) => new Date(b.date + ' ' + b.time) - new Date(a.date + ' ' + a.time)).slice(0, 15);
+      const allTx = [...payments, ...invocations].sort((a, b) => new Date(b.date + ' ' + b.time) - new Date(a.date + ' ' + a.time)).slice(0, 15);
 
-      setTransactions(merged);
+      setTransactions(allTx);
     } catch (e) {
       console.error(e);
     } finally {
@@ -409,18 +449,21 @@ export default function App() {
         {/* Real-time Streaming Toasts */}
         <div className="event-toast-container">
           {liveEvents.map((ev) => (
-            <div key={ev.id} className="event-toast" style={{ borderColor: ev.type === 'mint' ? '#f59e0b' : 'var(--success)' }}>
-              <div className="event-toast-icon" style={{ background: ev.type === 'mint' ? '#f59e0b' : 'var(--success)', boxShadow: `0 0 15px ${ev.type === 'mint' ? 'rgba(245, 158, 11, 0.4)' : 'rgba(34, 197, 94, 0.4)'}` }}>
-                {ev.type === 'mint' ? '🪙' : '🚀'}
+            <div key={ev.id} className="event-toast" style={{ borderColor: ev.type === 'mint' ? '#f59e0b' : (ev.type === 'extract' ? 'var(--danger)' : 'var(--success)') }}>
+              <div className="event-toast-icon" style={{
+                background: ev.type === 'mint' ? '#f59e0b' : (ev.type === 'extract' ? 'var(--danger)' : 'var(--success)'),
+                boxShadow: `0 0 15px ${ev.type === 'mint' ? 'rgba(245, 158, 11, 0.4)' : (ev.type === 'extract' ? 'rgba(239, 68, 68, 0.4)' : 'rgba(34, 197, 94, 0.4)')}`
+              }}>
+                {ev.type === 'mint' ? '🪙' : (ev.type === 'extract' ? '💸' : '🚀')}
               </div>
               <div className="event-toast-content">
                 <span className="event-toast-title">
-                  {ev.type === 'mint' ? 'Reward Minted!' : 'Live Saving Event!'}
+                  {ev.type === 'mint' ? 'Reward Minted!' : (ev.type === 'extract' ? 'Savings Extracted!' : 'Live Saving Event!')}
                 </span>
                 <span className="event-toast-desc">
                   {ev.type === 'mint'
                     ? `Bonus tokens issued by contract ${ev.source} at ${ev.timestamp}`
-                    : `Someone interacted with Savings Tracker at ${ev.timestamp}`}
+                    : (ev.type === 'extract' ? `Someone extracted locked savings at ${ev.timestamp}` : `Someone interacted with Savings Tracker at ${ev.timestamp}`)}
                 </span>
               </div>
             </div>

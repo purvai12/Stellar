@@ -3,7 +3,7 @@ import * as StellarSdk from "@stellar/stellar-sdk";
 import PageTransition from "../components/PageTransition";
 
 const RPC_URL = "https://soroban-testnet.stellar.org";
-const CONTRACT_ID = "CCXJ4ETYDS7YNJCMXEYHL3H54B5SGEPUZGAOKRHVBF7ND7H3V55QP2YL";
+const CONTRACT_ID = "CDGPV4NRFR4IG7QIM7IDED623IC5B6B2Q5GFUURRKUBSEGKKKWHQJFMX";
 const sorobanServer = new StellarSdk.rpc.Server(RPC_URL);
 
 export default function OnChainSavings({ walletAddress }) {

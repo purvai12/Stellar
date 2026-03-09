@@ -81,6 +81,31 @@ impl SavingsTracker {
         }
     }
 
+    // Extract Savings Amount
+    pub fn extract_savings(env: Env, user: Address, amount: i128) {
+        user.require_auth();
+
+        let mut data: GoalData = env
+            .storage()
+            .persistent()
+            .get(&(DATA_KEY, user.clone()))
+            .unwrap_or(GoalData { goal: 0, saved: 0 });
+
+        if data.saved < amount {
+            panic!("insufficient savings");
+        }
+
+        data.saved -= amount;
+
+        env.storage()
+            .persistent()
+            .set(&(DATA_KEY, user.clone()), &data);
+
+        // Event for real-time tracking
+        env.events()
+            .publish((symbol_short!("extract"), user.clone()), amount);
+    }
+
     // Fetch Goal
     pub fn get_goal(env: Env, user: Address) -> i128 {
         let data: GoalData = env

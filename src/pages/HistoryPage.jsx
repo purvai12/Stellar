@@ -38,7 +38,7 @@ export default function HistoryPage({ transactions, onRefresh }) {
                                             ? <span className="chip chip-green">↓ Received</span>
                                             : <span className="chip chip-purple">↑ Sent</span>}
                                     </td>
-                                    <td style={{ fontWeight: 600 }}>{tx.amount}</td>
+                                    <td style={{ fontWeight: 600, color: String(tx.amount).includes('Contract') ? 'var(--muted)' : 'inherit' }}>{tx.amount}</td>
                                     <td style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>
                                         {tx.date} <span style={{ opacity: 0.5 }}>{tx.time}</span>
                                     </td>

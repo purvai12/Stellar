@@ -9,21 +9,23 @@ A modern, multi-page Web3 savings tracker built on **Stellar Testnet** with **So
   Active and running via GitHub Actions (see badge above).  
 - **Mobile Responsive View:** 
   Screenshot is provided in this file at the bottom with other screenshots.
-- **Savings Tracker Contract:** `CCXJ4ETYDS7YNJCMXEYHL3H54B5SGEPUZGAOKRHVBF7ND7H3V55QP2YL`
+- **Savings Tracker Contract:** `CDGPV4NRFR4IG7QIM7IDED623IC5B6B2Q5GFUURRKUBSEGKKKWHQJFMX`
 - **Custom Reward Token (Pool/Asset):** `CBV6MABYTVUDMXIOSNPXT4GQ4NSJLUDZISGWRXTZXYLQYDNAWYCJY5HG` 
 - **Contract Deployment & Link Transaction Hash:** [`6f74455365bfa12eb535fa99cb7047ba95bccb51021ccd073355215...`](https://stellar.expert/explorer/testnet/tx/6f74455365bfa12eb535fa99cb7047ba95bccb51021ccd073355215527bfa008c) (Initializes inter-contract calls)
 
 ### Platform Features
 - **Multi-Wallet Support**: Integrated with `@creit-tech/stellar-wallets-kit` supporting Freighter, LOBSTR, xBull, Albedo, and more.
-- **Smart Contract Interop**: Deploy and call `set_goal`, `get_goal`, `add_savings`, and `get_saved` functions directly from the React frontend.
-- **Robust Error Handling**: Gracefully handles (1) Wallet not found/not supported, (2) User-rejected signatures, and (3) Insufficient XLM balances.
+- **Smart Contract Interop**: Deploy and call `set_goal`, `get_goal`, `add_savings`, `extract_savings`, and `get_saved` functions directly from the React frontend.
+- **Robust Error Handling**: Gracefully handles Wallet not found, User-rejected signatures, and Insufficient XLM balances with real-time feedback.
 - **Gamified Savings**: Tracks daily savings streaks, awards SVG NFT badges (stored locally), and fires confetti upon goal completions.
 - **Community Leaderboard**: Reads on-chain contract data to build a decentralized leaderboard ranking network savers.
-- **Live Transaction History**: Fetches XLM payments and Soroban contract invocations (`invoke_host_function`).
+- **Profile Customization**: Users can personalize their displayed name and select custom Emoji Avatars.
+- **Live Transaction Diagnostics**: Real-time event toast feeds and comprehensive transaction history that natively parses Soroban XDR `invoke_host_function` arguments to show precise XLM added/extracted.
+- **Modern UI/UX**: Features a Neon Glassmorphism design system complete with a built-in Light / Dark Mode toggle.
 
 ---
 ### Demo Video
-[![Watch Demo](./demo-thumbnail.png)](./savings_tracker.mp4)
+![Watch Demo](./demo-thumbnail.png)(https://youtu.be/3aowwoFo4Go)
 
 ##  Screenshots
 
@@ -46,12 +48,11 @@ A modern, multi-page Web3 savings tracker built on **Stellar Testnet** with **So
 
 ![Test Outputs](./screenshots/test-outputs.png)
 
-## Deployed Contract Details
-
-> **Savings Tracker Contract Address (Testnet):** `CCXJ4ETYDS7YNJCMXEYHL3H54B5SGEPUZGAOKRHVBF7ND7H3V55QP2YL`
-> **Reward Token Contract Address (Testnet):** `CBV6MABYTVUDMXIOSNPXT4GQ4NSJLUDZISGWRXTZXYLQYDNAWYCJY5HG`
+### Deployed Contract Addresses
+- **Savings Tracker (`hello-world`)**: `CDGPV4NRFR4IG7QIM7IDED623IC5B6B2Q5GFUURRKUBSEGKKKWHQJFMX`
+- **Reward Token (`reward-token`)**: `CBSGY2RHQ4C5UP7L37L5LP62UXOVAIXOBHGJR3P3XRJZFQ3ROZFS5ZJ3`
 > 
-> [View Tracker Contract on Stellar Expert](https://stellar.expert/explorer/testnet/contract/CCXJ4ETYDS7YNJCMXEYHL3H54B5SGEPUZGAOKRHVBF7ND7H3V55QP2YL)
+> [View Tracker Contract on Stellar Expert](https://stellar.expert/explorer/testnet/contract/CDGPV4NRFR4IG7QIM7IDED623IC5B6B2Q5GFUURRKUBSEGKKKWHQJFMX)
 
 ### Sample Inter-Contract Call Transaction
 

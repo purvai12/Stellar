@@ -11,6 +11,7 @@ import { LobstrModule } from '@creit-tech/stellar-wallets-kit/modules/lobstr';
 
 import Sidebar from './components/Sidebar';
 import BadgeModal from './components/BadgeModal';
+import ProfileModal from './components/ProfileModal';
 import IntroPage from './pages/IntroPage';
 import DashboardPage from './pages/DashboardPage';
 import GoalsPage from './pages/GoalsPage';
@@ -57,6 +58,9 @@ export default function App() {
   const [newBadge, setNewBadge] = useState(null); // badge award popup
   const [streakData, setStreakData] = useState({ streak: 0 });
   const [liveEvents, setLiveEvents] = useState([]);
+  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
+  const [profile, setProfile] = useState({ name: 'Saver', avatar: '' });
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
   // ── Stream real-time events ──────────────────────────────────────────────
   useEffect(() => {
@@ -147,6 +151,14 @@ export default function App() {
     };
   }, []);
 
+  // ── Theme Management ─────────────────────────────────────────────────────
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+
   // Load saved addresses + streak on wallet change
   useEffect(() => {
     // Initialize V3 API
@@ -164,6 +176,14 @@ export default function App() {
     const saved = localStorage.getItem('stellarAddresses');
     if (saved) setSavedAddresses(JSON.parse(saved));
     setStreakData(getStreakData(walletAddress));
+
+    // Load custom profile
+    const savedProfile = localStorage.getItem(`profile_${walletAddress}`);
+    if (savedProfile) {
+      setProfile(JSON.parse(savedProfile));
+    } else {
+      setProfile({ name: 'Saver', avatar: walletAddress.slice(1, 2).toUpperCase() });
+    }
   }, [walletAddress]);
 
   // ── Fetch balance & transactions ─────────────────────────────────────────
@@ -373,6 +393,19 @@ export default function App() {
           <BadgeModal badge={newBadge} onClose={() => setNewBadge(null)} />
         )}
 
+        {/* Profile Edit Modal */}
+        {showProfileModal && (
+          <ProfileModal
+            profile={profile}
+            onClose={() => setShowProfileModal(false)}
+            onSave={(newProfile) => {
+              setProfile(newProfile);
+              localStorage.setItem(`profile_${walletAddress}`, JSON.stringify(newProfile));
+              setShowProfileModal(false);
+            }}
+          />
+        )}
+
         {/* Real-time Streaming Toasts */}
         <div className="event-toast-container">
           {liveEvents.map((ev) => (
@@ -395,7 +428,14 @@ export default function App() {
         </div>
 
         {isConnectedWallet && (
-          <Sidebar walletAddress={walletAddress} disconnectWallet={disconnectWallet} />
+          <Sidebar
+            walletAddress={walletAddress}
+            disconnectWallet={disconnectWallet}
+            theme={theme}
+            toggleTheme={toggleTheme}
+            profile={profile}
+            onEditProfile={() => setShowProfileModal(true)}
+          />
         )}
 
         <div className={isConnectedWallet ? 'main' : ''} style={!isConnectedWallet ? { flex: 1 } : {}}>

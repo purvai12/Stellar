@@ -9,7 +9,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_B26r8WIxEIKs1gh47AiyvA_Y8B6AuLQ';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const RPC_URL = "https://soroban-testnet.stellar.org";
-const CONTRACT_ID = "CB2QEUXSE7JNVZQIFQLTWWMTNYZFMYBUEJTHBNPBJRYU2OGRCS66K65P";
+const CONTRACT_ID = "CDGPV4NRFR4IG7QIM7IDED623IC5B6B2Q5GFUURRKUBSEGKKKWHQJFMX";
 const sorobanServer = new StellarSdk.rpc.Server(RPC_URL);
 
 // Mock community addresses (we'll also add the connected user if they "join")

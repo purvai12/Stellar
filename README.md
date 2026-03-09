@@ -25,7 +25,7 @@ A modern, multi-page Web3 savings tracker built on **Stellar Testnet** with **So
 
 ---
 ### Demo Video
-[![Watch Demo](./demo-thumbnail.png)(https://youtu.be/3aowwoFo4Go)
+[![Watch Demo](./demo-thumbnail.png)](https://youtu.be/3aowwoFo4Go)
 
 ##  Screenshots
 

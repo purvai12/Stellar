@@ -34,17 +34,7 @@ A modern, multi-page Web3 savings tracker built on **Stellar Testnet** with **So
 
 ![Mobile Responsive View](./screenshots/mobile-view.jpg)
 
-### 1. Wallet Options Available (Multi-Wallet Connect)
-*Integrated with StellarWalletsKit offering Freighter, LOBSTR, xBull, and more.*
-
-![Wallet Options](./screenshots/wallet-options.jpg)
-
-### 2. On-Chain Savings Goals
-*Track your targeted savings. Every contribution is logged on the Soroban smart contract.*
-
-![Goals Page](./screenshots/goals-page.jpg)
-
-### 3. Test Outputs
+###  Test Outputs
 
 ![Test Outputs](./screenshots/test-outputs.png)
 

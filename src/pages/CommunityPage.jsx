@@ -55,7 +55,8 @@ export default function CommunityPage({ walletAddress, streakData, onBadgeAwarde
                     const sim = await sorobanServer.simulateTransaction(tx);
                     const val = sim.result?.retval;
                     const parsedVal = val ? StellarSdk.scValToNative(val).toString() : "0";
-                    return { address, saved: Number(parsedVal) };
+                    const xlmVal = Number(parsedVal) / 10000000;
+                    return { address, saved: xlmVal };
                 } catch {
                     // If simulation fails (e.g. account unfunded/not initialized on contract) return 0
                     return { address, saved: 0 };

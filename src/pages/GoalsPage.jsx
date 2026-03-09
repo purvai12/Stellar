@@ -127,7 +127,15 @@ export default function GoalsPage({ walletAddress, onSavingRecorded, onBadgeAwar
             const signedTx = StellarSdk.TransactionBuilder.fromXDR(signedTxXdr, NETWORK_PASSPHRASE);
 
             setStatus('submitting');
-            await sorobanServer.sendTransaction(signedTx);
+            const submitRes = await sorobanServer.sendTransaction(signedTx);
+            if (submitRes.errorResultXdr) throw new Error("Transaction rejected");
+
+            let txStatus = await sorobanServer.getTransaction(submitRes.hash);
+            while (txStatus.status === "NOT_FOUND" || txStatus.status === "PENDING") {
+                await new Promise(r => setTimeout(r, 2000));
+                txStatus = await sorobanServer.getTransaction(submitRes.hash);
+            }
+            if (txStatus.status !== "SUCCESS") throw new Error("On-chain validation failed");
 
             setStatus('success');
 
@@ -205,7 +213,15 @@ export default function GoalsPage({ walletAddress, onSavingRecorded, onBadgeAwar
             const signedTx = StellarSdk.TransactionBuilder.fromXDR(signedTxXdr, NETWORK_PASSPHRASE);
 
             setStatus('submitting');
-            await sorobanServer.sendTransaction(signedTx);
+            const submitRes = await sorobanServer.sendTransaction(signedTx);
+            if (submitRes.errorResultXdr) throw new Error("Transaction rejected");
+
+            let txStatus = await sorobanServer.getTransaction(submitRes.hash);
+            while (txStatus.status === "NOT_FOUND" || txStatus.status === "PENDING") {
+                await new Promise(r => setTimeout(r, 2000));
+                txStatus = await sorobanServer.getTransaction(submitRes.hash);
+            }
+            if (txStatus.status !== "SUCCESS") throw new Error("On-chain validation failed");
 
             setStatus('success');
 
